@@ -1,10 +1,12 @@
-import sys
+import json
+
 import requests
-import json 
+import sys
+
 
 def is_flag(arg: str) -> bool:
     """Check if the arg is a flag"""
-    return arg.startswith('-')
+    return arg.startswith("-")
 
 
 def arg_to_flag(arg: str) -> str:
@@ -13,16 +15,16 @@ def arg_to_flag(arg: str) -> str:
     remove - and --
     """
     # TODO should check for validity of the flag
-    assert arg.startswith('-'), "Invalid argument for flag, doesnt star with -"
+    assert arg.startswith("-"), "Invalid argument for flag, doesnt star with -"
 
-    arg = arg.removeprefix('-')
-    arg = arg.removeprefix('-')
-    match arg: 
-        case 'X' | 'request':  
-            return 'method'
-        case _ :
-            assert 1==1, "NOT IMPLEMENTED"
-            return ''
+    arg = arg.removeprefix("-")
+    arg = arg.removeprefix("-")
+    match arg:
+        case "X" | "request":
+            return "method"
+        case _:
+            assert 1 == 1, "NOT IMPLEMENTED"
+            return ""
 
 
 def create_arg_dict(args: list[str]) -> dict:
@@ -34,55 +36,58 @@ def create_arg_dict(args: list[str]) -> dict:
         arg = args[i]
         if is_flag(arg):
             flag = arg_to_flag(arg)
-            i+=1
+            i += 1
             val = args[i]
             # TODO: carefully remove quotes
-            val.replace("'", '')
+            val.replace("'", "")
             arg_dict[flag] = val
         else:
-            # assuming this is the url 
+            # assuming this is the url
             # TODO: maybe add some check
-            arg_dict['url'] = arg
-        i+=1
+            # TODO: extract the base url
+            # TODO: extract the query params
+            arg_dict["url"] = arg
+        i += 1
 
     return arg_dict
 
 
 def print_res(res: requests.Response):
     status_code = res.status_code
-    print(f'status code : {status_code}')
+    print(f"status code : {status_code}")
 
     if res.status_code != 200:
         # TODO: Explain the status code to me
-        print(f'status code: {status_code}')
-        print(f'means: boohoo')
+        print(f"status code: {status_code}")
+        print(f"means: boohoo")
     else:
-        # TODO: assuming that the res has a json 
+        # TODO: assuming that the res has a json
         res_json = res.json()
-        print(f'out ----------------')
+        print(f"out ----------------")
         print(json.dumps(res_json, indent=4))
 
 
 def make_req(arg_dict) -> None:
-    method = arg_dict.get('method', 'GET')
-    url = arg_dict.get('url')
+    method = arg_dict.get("method", "GET")
+    url = arg_dict.get("url")
 
     if url is None:
         print("[ERR] No URL provided")
         exit(1)
-    
+
     # TODO: requests doesnt needs complete url with http or https
     match method:
-        case 'GET':
+        case "GET":
             res = requests.get(url)
-        case 'POST':
+        case "POST":
             res = requests.post(url)
-        case _: 
+        case _:
             res = None
-            print('[ERR] method not implemented')
+            print("[ERR] method not implemented")
 
     if res:
         print_res(res)
+
 
 def main(args: list[str]):
     arg_dict = create_arg_dict(args)
